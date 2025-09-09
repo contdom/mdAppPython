@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestione Parametri e Fasi</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Elenco Parametri e Assegnazione Fasi</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Parametro</th>
+                <th>Tipo</th>
+                {% for fase in fasi %}
+                    <th>{{ fase.rfi_fase }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for parametro in parametri %}
+            <tr>
+                <td>{{ parametro.nome_parametro }}</td>
+                <td>{{ parametro.tipo }}</td>
+                {% for fase in fasi %}
+                    <td>
+                        <input 
+                            type="checkbox" 
+                            data-parametro-id="{{ parametro.id }}"
+                            data-fase-id="{{ fase.id }}"
+                            class="fase-checkbox"
+                        >
+                    </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkboxes = document.querySelectorAll('.fase-checkbox');
+            
+            // Per il Pset predefinito, usiamo 1 (corrispondente a 'A01_Pset_Codifica')
+            const psetId = 1;
+
+            // Carica le associazioni esistenti al caricamento della pagina
+            fetch('/get_associazioni')
+                .then(response => response.json())
+                .then(associazioni => {
+                    checkboxes.forEach(checkbox => {
+                        const parametroId = parseInt(checkbox.dataset.parametroId);
+                        const faseId = parseInt(checkbox.dataset.faseId);
+                        const isAssociated = associazioni.some(ass => ass.nome_parametro_id === parametroId && ass.rfi_fase_id === faseId && ass.rfi_pset_id === psetId);
+                        checkbox.checked = isAssociated;
+                    });
+                });
+
+            // Gestisce la modifica delle checkbox
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const parametroId = this.dataset.parametroId;
+                    const faseId = this.dataset.faseId;
+                    const isChecked = this.checked;
+
+                    const data = {
+                        pset_id: psetId,
+                        parametro_id: parseInt(parametroId),
+                        fase_id: parseInt(faseId),
+                        is_checked: isChecked
+                    };
+
+                    fetch('/toggle_associazione', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data),
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (!result.success) {
+                            alert('Errore: ' + result.message);
+                            this.checked = !isChecked; // Ripristina lo stato
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore di rete:', error);
+                        this.checked = !isChecked; // Ripristina lo stato
+                        alert('Errore di rete. Controlla la console per i dettagli.');
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

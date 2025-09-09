@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Aggiungi Parametro</title>
+</head>
+<body>
+    <h1>Aggiungi una nuova associazione Pset/Parametro/Fase</h1>
+    <form method="post">
+        <div>
+            <label for="pset">Scegli il Pset:</label>
+            <select name="pset" id="pset" required>
+                {% for pset in psets %}
+                <option value="{{ pset.id }}">{{ pset.rfi_pset }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br>
+        <div>
+            <label for="parametro">Scegli il Parametro:</label>
+            <select name="parametro" id="parametro" required>
+                {% for parametro in parametri %}
+                <option value="{{ parametro.id }}">{{ parametro.nome_parametro }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br>
+        <div>
+            <label>Seleziona le Fasi:</label><br>
+            {% for fase in fasi %}
+                <input type="checkbox" name="fasi" value="{{ fase.id }}" id="fase_{{ fase.id }}">
+                <label for="fase_{{ fase.id }}">{{ fase.rfi_fase }}</label><br>
+            {% endfor %}
+        </div>
+        <br>
+        <button type="submit">Salva</button>
+    </form>
+    <hr>
+    <a href="{{ url_for('index') }}">Torna alla tabella</a>
+</body>
+</html>
